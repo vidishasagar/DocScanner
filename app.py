@@ -36,11 +36,46 @@ class User(db.Model):
     def check_password(self, password):
         return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
 
-# Create tables
+# Admin model
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    def check_password(self, password):
+        return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
+
+# Credit Request model
+# Credit Request model
+class CreditRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(20), default='pending')  # pending, approved, denied
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Define a relationship to the User model
+    user = db.relationship('User', backref='credit_requests')
+
+    def __init__(self, user_id, amount):
+        self.user_id = user_id
+        self.amount = amount
+        # self.amount = amount
+
+# Create tables and add default admin
 with app.app_context():
     db.create_all()
+    # Add a default admin (for testing)
+    if not Admin.query.filter_by(username='admin').first():
+        default_admin = Admin(username='admin', password='admin@123')  # Updated password
+        db.session.add(default_admin)
+        db.session.commit()
 
-# Helper function to reset credits daily
+# Helper function to reset credits daily (for users only)
 def reset_credits_if_needed(user):
     if datetime.utcnow() - user.last_reset >= timedelta(days=1):
         user.credits = 20  # Reset credits
@@ -50,6 +85,26 @@ def reset_credits_if_needed(user):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/update_credits/<int:user_id>', methods=['POST'])
+def update_credits(user_id):
+    if 'admin' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json()
+    new_credits = data.get('credits')
+
+    if not new_credits or not isinstance(new_credits, int):
+        return jsonify({"error": "Invalid credits value"}), 400
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    user.credits = new_credits
+    db.session.commit()
+
+    return jsonify({"message": "Credits updated successfully"}), 200
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -84,6 +139,40 @@ def login():
 
     return render_template('login.html')
 
+# Admin Login Route
+@app.route('/admin_login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        admin = Admin.query.filter_by(username=username).first()
+        
+        if admin and admin.check_password(password):
+            session['admin'] = admin.username
+            return redirect('/admin')  # Redirect to admin dashboard
+        else:
+            return render_template('admin_login.html', error='Invalid admin credentials')
+
+    return render_template('admin_login.html')
+
+# Admin Dashboard Route
+@app.route('/admin')
+def admin_dashboard():
+    if 'admin' in session:
+        # Fetch all users and their credits
+        users = User.query.all()
+        # Fetch all pending credit requests
+        credit_requests = CreditRequest.query.filter_by(status='pending').all()
+        return render_template('admin.html', users=users, credit_requests=credit_requests)
+    return redirect('/admin_login')
+
+# Admin Logout Route
+@app.route('/admin_logout')
+def admin_logout():
+    session.pop('admin', None)
+    return redirect('/admin_login')
+
 @app.route('/dashboard')
 def dashboard():
     if 'email' in session:
@@ -100,14 +189,16 @@ def logout():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if 'email' not in session:
+    if 'email' not in session and 'admin' not in session:
         return jsonify({"error": "Unauthorized"}), 401
 
-    user = User.query.filter_by(email=session['email']).first()
-    reset_credits_if_needed(user)  # Reset credits if needed
+    user = None
+    if 'email' in session:
+        user = User.query.filter_by(email=session['email']).first()
+        reset_credits_if_needed(user)  # Reset credits if needed
 
-    if user.credits <= 0:
-        return jsonify({"error": "No credits remaining. Please try again tomorrow."}), 403
+        if user.credits <= 0:
+            return jsonify({"error": "No credits remaining. Please try again tomorrow."}), 403
 
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -126,11 +217,16 @@ def upload_file():
         elif file_ext in {"doc", "docx"}:
             extracted_text = extract_text_from_doc(file)
         
-        # Decrement credits
-        user.credits -= 1
-        db.session.commit()
+        # Decrement credits only for regular users
+        if user:
+            user.credits -= 1
+            db.session.commit()
 
-        return jsonify({"extracted_text": extracted_text, "filename": filename, "credits_remaining": user.credits})
+        return jsonify({
+            "extracted_text": extracted_text,
+            "filename": filename,
+            "credits_remaining": user.credits if user else "Unlimited"
+        })
     
     except Exception as e:
         return jsonify({"error": f"Failed to process file: {str(e)}"}), 500
@@ -154,6 +250,68 @@ def extract_text_from_doc(doc_file):
         return text if text else "No readable text found in the document."
     except Exception as e:
         return f"Error processing Word document: {str(e)}"
+
+# Route to handle credit requests
+@app.route('/request_credits', methods=['POST'])
+def request_credits():
+    if 'email' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json()
+    amount = data.get('amount')
+
+    # Debugging: Log the incoming amount
+    print(f"Incoming amount: {amount} (Type: {type(amount)})")
+
+    if not amount or not isinstance(amount, int) or amount < 1:
+        return jsonify({"error": "Invalid credit amount"}), 400
+
+    user = User.query.filter_by(email=session['email']).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Create a new credit request
+    new_request = CreditRequest(user_id=user.id, amount=amount)
+    db.session.add(new_request)
+    db.session.commit()
+
+    return jsonify({"success": True, "message": "Credit request submitted successfully"}), 200
+
+# Route to approve a credit request
+@app.route('/approve_credit_request/<int:request_id>', methods=['POST'])
+def approve_credit_request(request_id):
+    if 'admin' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    credit_request = CreditRequest.query.get(request_id)
+    if not credit_request:
+        return jsonify({"error": "Credit request not found"}), 404
+
+    user = User.query.get(credit_request.user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Update user credits
+    user.credits += credit_request.amount
+    credit_request.status = 'approved'
+    db.session.commit()
+
+    return jsonify({"success": True, "message": "Credit request approved successfully"}), 200
+
+# Route to deny a credit request
+@app.route('/deny_credit_request/<int:request_id>', methods=['POST'])
+def deny_credit_request(request_id):
+    if 'admin' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    credit_request = CreditRequest.query.get(request_id)
+    if not credit_request:
+        return jsonify({"error": "Credit request not found"}), 404
+
+    credit_request.status = 'denied'
+    db.session.commit()
+
+    return jsonify({"success": True, "message": "Credit request denied successfully"}), 200
 
 @app.route('/classify', methods=['POST'])
 def classify_document():
