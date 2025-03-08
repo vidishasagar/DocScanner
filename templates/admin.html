@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+
+        body {
+            background-color: #111;
+        }
+
+        .dashboard-content {
+            text-align: center;
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .dashboard-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #444;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #0BA34E;
+        }
+
+        tr:nth-child(even) {
+            background-color: #222;
+        }
+
+        tr:hover {
+            background-color: #333;
+        }
+
+        .logout-button {
+            background-color: #0BA34E;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+
+        .logout-button:hover {
+            background-color: #088f3e;
+        }
+
+        .action-button {
+            background-color: #0BA34E;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin: 2px;
+        }
+
+        .action-button:hover {
+            background-color: #088f3e;
+        }
+
+        .action-button.deny {
+            background-color: #ff4d4d;
+        }
+
+        .action-button.deny:hover {
+            background-color: #cc0000;
+        }
+
+        .edit-form {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .edit-form input {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: #fff;
+        }
+
+        .edit-form button {
+            background-color: #0BA34E;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .edit-form button:hover {
+            background-color: #088f3e;
+        }
+
+        nav {
+            position: fixed;
+            display: flex;
+            height: 12vh;
+            width: 100%;
+            padding: 2vw 10.4vw;
+            justify-content: space-between;
+            background-color: #111;
+            z-index: 10;
+        }
+        
+        nav h1 {
+            font-size: 1.8vw;
+        }
+        
+        .nav-part2 {
+            align-items: end;
+            z-index: 10;
+        }
+        
+        .nav-part2 h5 {
+            display: none;
+            overflow: hidden;
+        }
+        
+        .nav-part2 h5 span {
+            font-size: 1vw;
+            font-weight: 400;
+            display: inline-block;
+            margin-top: 100px;
+            text-align: center;
+        }
+        
+        nav button {
+            background-color: #0BA34E;
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            font-size: 0.85vw;
+            text-transform: uppercase;
+            font-weight: 700;
+            border-radius: 50px;
+            border: none;
+        }
+        
+        nav button svg {
+            height: 0.8vw;
+            margin-left: 1.6vw;
+        }
+        
+        #nav-bottom {
+            width: 79%;
+            height: 0vh;
+            position: absolute;
+            top: 100%;
+            background-color: #111;
+            z-index: 9;
+            border-bottom: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <h1>DocScanner.</h1>
+        <div class="nav-part2">
+            <div class="nav-elem">
+                <h4></h4>
+                <h5 ><span>A smart system for scanning and matching documents.!!</span></h5>
+            </div>
+        </div>
+        
+        <div id="nav-bottom"></div>
+    </nav>
+    <div class="dashboard-content" >
+        <h1 style="margin-top:90px">Welcome, Admin</h1>
+
+        <!-- User Database Section -->
+        <h2>User Database</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Credits Remaining</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.credits }}</td>
+                    <td>
+                        <button class="action-button" onclick="toggleEditForm('{{ user.id }}')">Edit</button>
+                        <div id="edit-form-{{ user.id }}" class="edit-form">
+                            <form onsubmit="updateCredits(event, '{{ user.id }}')">
+                                <input type="number" id="credits-{{ user.id }}" value="{{ user.credits }}" required>
+                                <button type="submit">Update</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pending Credit Requests Section -->
+        <h2>Pending Credit Requests</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Requested Credits</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in credit_requests %}
+                <tr>
+                    <td>{{ request.user.name }}</td>
+                    <td>{{ request.amount }}</td>
+                    <td>{{ request.status }}</td>
+                    <td>
+                        <button class="action-button" onclick="approveRequest('{{ request.id }}')">Approve</button>
+                        <button class="action-button deny" onclick="denyRequest('{{ request.id }}')">Deny</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Logout Button -->
+        <button class="logout-button" onclick="window.location.href='/admin_logout'">Logout</button>
+    </div>
+
+    <script>
+        // Function to toggle the edit form
+        function toggleEditForm(userId) {
+            const form = document.getElementById(`edit-form-${userId}`);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Function to update user credits
+        async function updateCredits(event, userId) {
+            event.preventDefault();
+            const credits = document.getElementById(`credits-${userId}`).value;
+
+            const response = await fetch(`/update_credits/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ credits: parseInt(credits) }),
+            });
+
+            if (response.ok) {
+                alert('Credits updated successfully!');
+                window.location.reload();
+            } else {
+                alert('Failed to update credits.');
+            }
+        }
+
+        // Function to approve a credit request
+        async function approveRequest(requestId) {
+            const response = await fetch(`/approve_credit_request/${requestId}`, { method: 'POST' });
+            if (response.ok) {
+                alert('Credit request approved successfully!');
+                window.location.reload(); // Refresh the page to reflect changes
+            } else {
+                alert('Failed to approve credit request.');
+            }
+        }
+
+        // Function to deny a credit request
+        async function denyRequest(requestId) {
+            const response = await fetch(`/deny_credit_request/${requestId}`, { method: 'POST' });
+            if (response.ok) {
+                alert('Credit request denied successfully!');
+                window.location.reload(); // Refresh the page to reflect changes
+            } else {
+                alert('Failed to deny credit request.');
+            }
+        }
+    </script>
+</body>
+</html>

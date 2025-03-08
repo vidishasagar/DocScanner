@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - DocScanner</title>
+    <style>
+        /* Use the same styles as login.html */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: gilroy;
+            color: #fff;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+        }
+
+        nav {
+            position: fixed;
+            display: flex;
+            height: 12vh;
+            width: 100%;
+            padding: 2vw 10.4vw;
+            justify-content: space-between;
+            background-color: #111;
+            z-index: 10;
+        }
+
+        nav h1 {
+            font-size: 1.8vw;
+        }
+
+        .nav-part2 {
+            align-items: end;
+            z-index: 10;
+        }
+
+        .nav-part2 h5 {
+            display: none;
+            overflow: hidden;
+        }
+
+        .nav-part2 h5 span {
+            font-size: 1vw;
+            font-weight: 400;
+            display: inline-block;
+            margin-top: 100px;
+            text-align: center;
+        }
+
+        nav button {
+            background-color: #0BA34E;
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            font-size: 0.85vw;
+            text-transform: uppercase;
+            font-weight: 700;
+            border-radius: 50px;
+            border: none;
+        }
+
+        nav button svg {
+            height: 0.8vw;
+            margin-left: 1.6vw;
+        }
+
+        #nav-bottom {
+            width: 79%;
+            height: 0vh;
+            position: absolute;
+            top: 100%;
+            background-color: #111;
+            z-index: 9;
+            border-bottom: 1px solid #fff;
+        }
+
+        #page1 {
+            height: 100vh;
+            width: 100%;
+            background-color: #111;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #page1 h1 {
+            font-size: 8.5vw;
+            text-transform: uppercase;
+            font-weight: 900;
+            line-height: 8.5vw;
+        }
+
+        #page1 h1 svg {
+            height: 6vw;
+            border-radius: 50%;
+            width: 4vw;
+            background-color: #0BA34E;
+        }
+
+        #page1 p {
+            text-align: center;
+            font-weight: 400;
+            margin-top: 3vh;
+            font-size: 1vw;
+        }
+
+        #page1-something {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #page1-something a {
+            font-weight: 400;
+            font-size: 1vw;
+            text-transform: lowercase;
+            margin-top: 0.5vw;
+            padding: 9px 18px;
+            border: 1px solid hsl(0, 0%, 65%);
+            border-radius: 50px;
+            background-color: #111;
+            text-decoration: none;
+        }
+
+        #page1-something a:hover {
+            background-color: #0BA34E;
+        }
+
+        #page1-something h4 {
+            border: none;
+            padding: 2px;
+            padding-left: 1vw;
+            padding-right: 1vw;
+        }
+
+        #moving-div {
+            margin-top: 10vh;
+            position: absolute;
+            bottom: 3%;
+            white-space: nowrap;
+            padding: 1.2vw;
+            overflow: hidden;
+            width: 44%;
+        }
+
+        #moving-div .move {
+            display: inline-block;
+            animation-name: move;
+            animation-duration: 9s;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        @keyframes move {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        #blur-left {
+            height: 100%;
+            width: 50%;
+            background: linear-gradient(to right, #111, transparent);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+
+        /* Form Styling */
+        .container {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2vw;
+            border-radius: 10px;
+            width: 30%;
+            text-align: center;
+        }
+
+        .container h2 {
+            font-size: 2.5vw;
+            margin-bottom: 2vh;
+        }
+
+        .form-group {
+            margin-bottom: 2vh;
+        }
+
+        .form-group label {
+            font-size: 1.2vw;
+            display: block;
+            margin-bottom: 0.5vh;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1vh;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #222;
+            color: #fff;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0BA34E;
+        }
+
+        .btn {
+            background-color: #0BA34E;
+            color: #fff;
+            border: none;
+            padding: 1vh 2vw;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2vw;
+            margin-top: 1vh;
+        }
+
+        .btn:hover {
+            background-color: #088f3e;
+        }
+
+        .btn-primary {
+            background-color: #0BA34E;
+        }
+
+        .btn-primary:hover {
+            background-color: #088f3e;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <h1>DocScanner.</h1>
+        <div class="nav-part2">
+            <div class="nav-elem">
+                <h4></h4>
+                <h5><span>A smart system for scanning and matching documents. <br> You get free 20 scans daily✨!!</span></h5>
+            </div>
+        </div>
+        <button>Let's Talk
+            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0,0,256,256">
+                <g fill="#fffafa" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal">
+                    <g transform="scale(2,2)">
+                        <path d="M32,122h10c1.7,0 3,-1.3 3,-3c0,-1.7 -1.3,-3 -3,-3h-10c-3.9,0 -7,-3.1 -7,-7v-10c0,-1.7 -1.3,-3 -3,-3c-1.7,0 -3,1.3 -3,3v10c0,7.2 5.8,13 13,13zM86,122h10c7.2,0 13,-5.8 13,-13v-10c0,-1.7 -1.3,-3 -3,-3c-1.7,0 -3,1.3 -3,3v10c0,3.9 -3.1,7 -7,7h-10c-1.7,0 -3,1.3 -3,3c0,1.7 1.3,3 3,3zM42,6h-10c-7.2,0 -13,5.8 -13,13v10c0,1.7 1.3,3 3,3c1.7,0 3,-1.3 3,-3v-10c0,-3.9 3.1,-7 7,-7h10c1.7,0 3,-1.3 3,-3c0,-1.7 -1.3,-3 -3,-3zM86,6c-1.7,0 -3,1.3 -3,3c0,0.2 0,0.3 0.1,0.5c-0.1,0.2 -0.1,0.3 -0.1,0.5v9c0,7.2 5.8,13 13,13h9c0.2,0 0.3,0 0.5,-0.1c0.2,0 0.3,0 0.5,0c1.7,0 3,-1.3 3,-3c0,-12.6 -10.3,-22.9 -23,-22.9zM96,26c-3.9,0 -7,-3.1 -7,-7v-6.7c7,1.2 12.5,6.7 13.7,13.7zM39,59c0,1.7 1.3,3 3,3h44c1.7,0 3,-1.3 3,-3c0,-1.7 -1.3,-3 -3,-3h-44c-1.7,0 -3,1.3 -3,3zM89,74c0,-1.7 -1.3,-3 -3,-3h-44c-1.7,0 -3,1.3 -3,3c0,1.7 1.3,3 3,3h44c1.7,0 3,-1.3 3,-3zM69.2,89c0,-1.7 -1.3,-3 -3,-3h-24c-1.7,0 -3,1.3 -3,3c0,1.7 1.3,3 3,3h24c1.7,0 3,-1.3 3,-3z"></path>
+                    </g>
+                </g>
+            </svg>
+        </button>
+        <div id="nav-bottom"></div>
+    </nav>
+    <div id="main">
+        <div id="page1">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-sm-6 mt-4">
+                        <h2>Admin Login</h2>
+                        <form action="/admin_login" method="POST">
+                            <div class="form-group">
+                                <label for="username">Username:</label>
+                                <input type="text" class="form-control" id="username" placeholder="Enter username" name="username">
+                            </div>
+                            <div class="form-group">
+                                <label for="pwd">Password:</label>
+                                <input type="password" class="form-control" id="pwd" placeholder="Enter password" name="password">
+                            </div>
+                            <button type="submit" class="btn btn-dark">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div id="moving-div">
+                <div id="blur-left"></div>
+                <div class="move">
+                    Free Credits! Free Credits! Free Credits! Free Credits! Free Credits! Free Credits! Free Credits! Free Credits! Free Credits!
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
+        integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@3.5.4/dist/locomotive-scroll.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"
+        integrity="sha512-onMTRKJBKz8M1TnqqDuGBlowlH0ohFzMXYRNebz+yOcc5TQr/zAKsthzhuv0hiyUKEiQEQXEynnXCvNTOk50dg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        function locomotiveAnimate() {
+            gsap.registerPlugin(ScrollTrigger);
+
+            const locoScroll = new LocomotiveScroll({
+                el: document.querySelector("#main"),
+                smooth: true,
+                tablet: { smooth: true },
+            });
+            locoScroll.on("scroll", ScrollTrigger.update);
+
+            ScrollTrigger.scrollerProxy("#main", {
+                scrollTop(value) {
+                    return arguments.length
+                        ? locoScroll.scrollTo(value, 0, 0)
+                        : locoScroll.scroll.instance.scroll.y;
+                },
+                getBoundingClientRect() {
+                    return {
+                        top: 0,
+                        left: 0,
+                        width: window.innerWidth,
+                        height: window.innerHeight
+                    };
+                }
+            });
+
+            ScrollTrigger.addEventListener("refresh", () => locoScroll.update());
+            ScrollTrigger.refresh();
+        }
+
+        function loadingAnimate() {
+            var tl = gsap.timeline();
+            tl.from("#page1", {
+                duration: 0.2,
+                opacity: 0,
+                delay: 0.2
+            });
+            tl.from("#page1", {
+                transform: "scaleX(0.6) scaleY(0.1) translateY(70%)",
+                ease: "expo.out",
+                borderRadius: "140px",
+                duration: 2.6,
+            });
+            tl.from("nav", {
+                opacity: 0,
+                delay: -0.2
+            });
+            tl.from("#page1 h1, #page1 p, #page1 div", {
+                opacity: 0,
+                duration: 0.5,
+            });
+        }
+
+        function navAnimate() {
+            var nav = document.querySelector("nav");
+
+            nav.addEventListener("mouseenter", function () {
+                let tl1 = gsap.timeline();
+                tl1.to("#nav-bottom", {
+                    height: "21vh",
+                    duration: 0.5
+                });
+                tl1.to(".nav-part2 h5", {
+                    display: "block",
+                    duration: 0.1
+                });
+                tl1.to(".nav-part2 h5 span", {
+                    y: 0,
+                    stagger: {
+                        amount: 0.56
+                    }
+                });
+            });
+            nav.addEventListener("mouseleave", function () {
+                let tl1 = gsap.timeline();
+                tl1.to(".nav-part2 h5 span", {
+                    y: 25,
+                    stagger: {
+                        amount: 0.2
+                    }
+                });
+                tl1.to(".nav-part2 h5", {
+                    display: "none",
+                    duration: 0.1
+                });
+                tl1.to("#nav-bottom", {
+                    height: 0,
+                    duration: 0.2
+                });
+            });
+        }
+
+        locomotiveAnimate();
+        navAnimate();
+        loadingAnimate();
+    </script>
+</body>
+</html>
