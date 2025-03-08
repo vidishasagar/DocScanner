@@ -227,6 +227,19 @@
                 font-size: 1.2vw;
                 color: #f00;
             }
+            /* Add this CSS for the popup */
+            #creditWarning {
+                display: none;
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: #ffcc00;
+                color: #000;
+                padding: 15px;
+                border-radius: 5px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+            }
         </style>
     </head>
     
@@ -268,8 +281,37 @@
                         Free Credits! Free Credits! Free Credits! Free Credits! Free Credits! Free Credits! Free Credits! Free Credits! Free Credits!
                     </div>
                 </div>
+                <div class="request-credits" style="margin-top: 10px;">
+        <h3>Request Additional Credits</h3>
+        <input type="number" id="creditRequestAmount" placeholder="Enter credit amount" min="1" style="background-color:black" />
+        <button onclick="requestCredits()" style="background-color: green; padding: 8px 12px; border-radius: 6px; margin-top: 10px;">
+            Request
+          </button>
+          
+        <p id="creditRequestFeedback"></p>
+    </div>
             </div>
+            
         </div>
+
+       
+
+         <script>
+            // Check credits and show warning if less than 5
+            function checkCredits() {
+                const credits = {{ user.credits }};
+                console.log("User credits:", credits); // Debugging: Log the credits value
+                if (credits <= 5) {
+                    alert(`You have only ${credits} credits remaining!`);
+                }
+            }
+            
+            // Call the function when the page loads
+            document.addEventListener("DOMContentLoaded", function () {
+                console.log("Page loaded"); // Debugging: Log when the page loads
+                checkCredits();
+            });
+        </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
             integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg=="
             crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -434,7 +476,33 @@
                     }
                 });
             });
-
+            function requestCredits() {
+                const creditAmount = parseInt(document.getElementById('creditRequestAmount').value);
+                if (!creditAmount || creditAmount < 1) {
+                    alert('Please enter a valid credit amount.');
+                    return;
+                }
+            
+                fetch('/request_credits', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: creditAmount })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('creditRequestFeedback').textContent = 'Credit request submitted successfully.';
+                        document.getElementById('creditRequestFeedback').style.color = 'green';
+                    } else {
+                        document.getElementById('creditRequestFeedback').textContent = data.error || 'Failed to submit credit request.';
+                        document.getElementById('creditRequestFeedback').style.color = 'red';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('creditRequestFeedback').textContent = `Error: ${error}`;
+                    document.getElementById('creditRequestFeedback').style.color = 'red';
+                });
+            }
             locomotiveAnimate();
             navAnimate();
             loadingAnimate();
