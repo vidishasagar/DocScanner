@@ -10,6 +10,21 @@ DocScanner is a web application that allows users to upload documents (PDF, DOC,
 - **Credit System**: Users get 20 free scans per day.
 - **Responsive UI**: Clean and modern user interface.
 
+- **Daily Free Credits**:
+   Every user starts with 20 free credits at midnight (local server reset).
+   If credits are exhausted, the user must wait till the next day or request admin approval for more credits.
+
+- **Admin Credit Management**:
+   Users can submit a request for additional credits.
+   Admin can approve or deny requests.
+   Admin can manually adjust user credit balances.
+
+- **Handling Credit Deductions**:
+   Each document scan deducts 1 credit.
+   If a user has 0 credits, they cannot scan until:
+   The next daily reset, OR
+   Admin manually adds more credits.
+
 ## Prerequisites
 
 - Python 3.x
