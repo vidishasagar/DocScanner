@@ -84,6 +84,10 @@ DocScanner/
 └── database.db             # SQLite database
 ```
 
+
+https://github.com/user-attachments/assets/c83caf03-6bc0-4629-8255-7b1199fb8780
+
+
 ## API Keys
 
 To use the Gemini API, you need to configure your API key in `app.py`:
